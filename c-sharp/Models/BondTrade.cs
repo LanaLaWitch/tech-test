@@ -2,7 +2,7 @@
 {
     public class BondTrade : BaseTrade
     {
-        public BondTrade(string tradeId_)
+        public BondTrade(string tradeId_) : base(tradeId_) { }
         {
             if (string.IsNullOrWhiteSpace(tradeId_))
             {
