@@ -44,16 +44,8 @@ namespace HmxLabs.TechTest.RiskSystem
 
             foreach (var configItem in pricerConfig)
             {
-                try
-                {
-                    var pricingEngine = LoadPricingEngineFromAssembly(configItem);
-                    _pricers.Add(configItem.TradeType, pricingEngine);
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"Could not load pricing engine for config with trade type {configItem.TradeType}. {ex.ToString()}");
-                    continue;
-                }
+                var pricingEngine = LoadPricingEngineFromAssembly(configItem);
+                _pricers.Add(configItem.TradeType, pricingEngine);
             }
         }
 
