@@ -8,12 +8,15 @@ namespace HmxLabs.TechTest.ConsoleApp
         public static void Main(string[] args_)
         {
             var tradeLoader = new SerialTradeLoader();
-
             var allTrades = tradeLoader.LoadTrades();
+
             var results = new ScalarResults();
-            var pricer = new SerialPricer();
-            //var pricer = new ParallelPricer();
-            pricer.Price(allTrades, results);
+            var pricer = new ParallelPricer();
+
+            //var pricer = new SerialPricer();
+            //tradeLoader.LoadAndPriceTrades(pricer, results);
+
+            pricer.PriceTrades(allTrades, results);
 
             var screenPrinter = new ScreenResultPrinter();
             screenPrinter.PrintResults(results);

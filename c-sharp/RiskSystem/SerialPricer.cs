@@ -1,29 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HmxLabs.TechTest.Models;
 
 namespace HmxLabs.TechTest.RiskSystem
 {
     public class SerialPricer
     {
-        public void Price(IEnumerable<IEnumerable<ITrade>> tradeContainters_, IScalarResultReceiver resultReceiver_)
+        private const string PluginFolderPath = @".\plugins\";
+       
+        public SerialPricer()
         {
             LoadPricers();
+        }
 
+        public void Price(IEnumerable<IEnumerable<ITrade>> tradeContainters_, IScalarResultReceiver resultReceiver_)
+        {
             foreach (var tradeContainter in tradeContainters_)
             {
                 foreach (var trade in tradeContainter)
                 {
-                    if (!_pricers.ContainsKey(trade.TradeType))
-                    {
-                        resultReceiver_.AddError(trade.TradeId, "No Pricing Engines available for this trade type");
-                        continue;
-                    }
-
-                    var pricer = _pricers[trade.TradeType];
-                    pricer.Price(trade, resultReceiver_);
+                    Price(trade, resultReceiver_);
                 }
             }
+        }
+
+        public void Price(ITrade trade, IScalarResultReceiver resultReceiver_)
+        {
+            if (!_pricers.ContainsKey(trade.TradeType))
+            {
+                resultReceiver_.AddError(trade.TradeId, "No Pricing Engines available for this trade type");
+                return;
+            }
+
+            var pricer = _pricers[trade.TradeType];
+            pricer.Price(trade, resultReceiver_);
         }
 
         private void LoadPricers()
@@ -33,8 +44,33 @@ namespace HmxLabs.TechTest.RiskSystem
 
             foreach (var configItem in pricerConfig)
             {
-                throw new NotImplementedException();
+                var pricingEngine = LoadPricingEngineFromAssembly(configItem);
+                _pricers.Add(configItem.TradeType, pricingEngine);
             }
+        }
+
+        private IPricingEngine LoadPricingEngineFromAssembly(PricingEngineConfigItem configItem_)
+        {
+            if (string.IsNullOrEmpty(configItem_.Assembly) || string.IsNullOrEmpty(configItem_.TypeName))
+                throw new ArgumentException($"PricingEngineConfig missing assembly/type name: Assembly {configItem_.Assembly}, TypeName {configItem_.TypeName}");
+
+            // The only part we need to load the dll is after the final .
+            var dllName = configItem_.Assembly.Split('.').Last();
+
+            var assemblyAddress = PluginFolderPath + dllName + ".dll";
+            var assembly = Assembly.LoadFrom(assemblyAddress);
+
+            var pricerType = assembly.GetType(configItem_.TypeName);
+            if (pricerType is null)
+                throw new TypeLoadException($"Could not load {configItem_.TypeName} from {configItem_.Assembly}");
+
+            // This should throw an error instead of returning null
+            var instance = Activator.CreateInstance(pricerType);
+
+            if (!(instance is IPricingEngine))
+                throw new InvalidCastException($"Loaded object was not of type {nameof(IPricingEngine)}.");
+
+            return instance as IPricingEngine;
         }
 
         private readonly Dictionary<string, IPricingEngine> _pricers = new Dictionary<string, IPricingEngine>();

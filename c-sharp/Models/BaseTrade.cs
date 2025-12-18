@@ -4,6 +4,16 @@ namespace HmxLabs.TechTest.Models
 {
     public abstract class BaseTrade : ITrade
     {
+        public BaseTrade(string tradeId_)
+        {
+            if (string.IsNullOrWhiteSpace(tradeId_))
+            {
+                throw new ArgumentException("A valid non null, non empty trade ID must be provided");
+            }
+
+            TradeId = tradeId_;
+        }
+
         public DateTime TradeDate { get; set; }
 
         public string? Counterparty { get; set; }

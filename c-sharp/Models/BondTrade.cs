@@ -1,20 +1,36 @@
-﻿namespace HmxLabs.TechTest.Models
+﻿using static HmxLabs.TechTest.Models.FxTrade;
+
+namespace HmxLabs.TechTest.Models
 {
     public class BondTrade : BaseTrade
     {
-        public BondTrade(string tradeId_)
-        {
-            if (string.IsNullOrWhiteSpace(tradeId_))
-            {
-                throw new ArgumentException("A valid non null, non empty trade ID must be provided");
-            }
-            
-            TradeId = tradeId_;
-        }
+        public BondTrade(string tradeId_) : base(tradeId_) { }
 
         public const string GovBondTradeType = "GovBond";
         public const string CorpBondTradeType = "CorpBond";
+        public const string SupraBondTradeType = "SupraBond";
 
-        public override string TradeType { get { return GovBondTradeType; } }
+        public enum BondTradeTypes
+        {
+            Government,
+            Corporate,
+            Supranational
+        }
+
+        public BondTradeTypes BondTradeType { get; set; }
+
+        public override string TradeType
+        {
+            get
+            {
+                return BondTradeType switch
+                {
+                    BondTradeTypes.Government => GovBondTradeType,
+                    BondTradeTypes.Corporate => CorpBondTradeType,
+                    BondTradeTypes.Supranational => SupraBondTradeType,
+                    _ => throw new ArgumentException("Unknown Bond trade type", BondTradeType.ToString())
+                };
+            }
+        }
     }
 }

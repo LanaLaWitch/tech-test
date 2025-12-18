@@ -7,14 +7,19 @@ namespace HmxLabs.TechTest.RiskSystem
         public void PrintResults(ScalarResults results_)
         {
             foreach (var result in results_)
-            {
-                // Write code here to print out the results such that we have : 
-                // TradeID : Result : Error
-                // If there is no result then the output should be :
-                // TradeID : Error
-                // If there is no error the output should be :
-                // TradeID : Result
-            }
+                Console.WriteLine(GetOutputLine(result));
+        }
+
+        private string GetOutputLine(ScalarResult result_)
+        {
+            // By definition of scalar result it cannot have both null result and null error.
+            if (null == result_.Result)
+                return $"{result_.TradeId} : {result_.Error}";
+
+            if (null == result_.Error)
+                return $"{result_.TradeId} : {result_.Result}";
+
+            return $"{result_.TradeId} : {result_.Result} : {result_.Error}";
         }
     }
 }

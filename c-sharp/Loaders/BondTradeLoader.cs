@@ -14,6 +14,16 @@ namespace HmxLabs.TechTest.Loaders
             return tradeList;
         }
 
+        public IEnumerable<ITrade> LoadTradesIndividually()
+        {
+            var tradeList = new BondTradeList();
+
+            foreach (var trade in LoadTradesFromFileIndividually(DataFile))
+            {
+                yield return trade;
+            }
+        }
+
         public string? DataFile { get; set; }
 
         private BondTrade CreateTradeFromLine(string line_)
@@ -21,6 +31,16 @@ namespace HmxLabs.TechTest.Loaders
             
             var items = line_.Split(new[] {Seperator});
             var trade = new BondTrade(items[6]);
+
+            // Set fx trade type. This drives the TradeType (string) property of the FxTrade object.
+            trade.BondTradeType = items[0] switch
+            {
+                "GovBond" => BondTrade.BondTradeTypes.Government,
+                "CorpBond" => BondTrade.BondTradeTypes.Corporate,
+                "Supra" => BondTrade.BondTradeTypes.Supranational,
+                _ => throw new InvalidDataException($"Invalid trade type: {items[0]}"),
+            };
+
             trade.TradeDate = DateTime.Parse(items[1]);
             trade.Instrument = items[2];
             trade.Counterparty = items[3];
@@ -49,6 +69,30 @@ namespace HmxLabs.TechTest.Loaders
                     else
                     {
                         tradeList_.Add(CreateTradeFromLine(stream.ReadLine()!));    
+                    }
+                    lineCount++;
+                }
+            }
+        }
+
+        private IEnumerable<BondTrade> LoadTradesFromFileIndividually(string? filename_)
+        {
+            if (null == filename_)
+                throw new ArgumentNullException(nameof(filename_));
+            
+            var stream = new StreamReader(filename_);
+            using (stream)
+            {
+                var lineCount = 0;
+                while (!stream.EndOfStream)
+                {
+                    if (0 == lineCount)
+                    {
+                        stream.ReadLine();
+                    }
+                    else
+                    {
+                        yield return CreateTradeFromLine(stream.ReadLine()!);    
                     }
                     lineCount++;
                 }
