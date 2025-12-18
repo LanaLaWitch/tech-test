@@ -3,18 +3,28 @@
     public class BondTrade : BaseTrade
     {
         public BondTrade(string tradeId_) : base(tradeId_) { }
+    
+        public enum BondTradeTypes
         {
-            if (string.IsNullOrWhiteSpace(tradeId_))
-            {
-                throw new ArgumentException("A valid non null, non empty trade ID must be provided");
-            }
-            
-            TradeId = tradeId_;
+            GovBond,
+            CorpBond
         }
 
         public const string GovBondTradeType = "GovBond";
         public const string CorpBondTradeType = "CorpBond";
 
-        public override string TradeType { get { return GovBondTradeType; } }
+        public BondTradeTypes BondTradeType { get; set; }
+
+        public override string TradeType { 
+            get 
+            {
+                return BondTradeType switch
+                {
+                    BondTradeTypes.GovBond => GovBondTradeType,
+                    BondTradeTypes.CorpBond => CorpBondTradeType,
+                    _ => throw new ArgumentException("Unknown bond trade type", BondTradeType.ToString())
+                };
+            } 
+        }
     }
 }
