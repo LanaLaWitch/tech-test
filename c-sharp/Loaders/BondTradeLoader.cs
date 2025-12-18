@@ -21,6 +21,16 @@ namespace HmxLabs.TechTest.Loaders
             
             var items = line_.Split(new[] {Seperator});
             var trade = new BondTrade(items[6]);
+
+            // Set fx trade type. This drives the TradeType (string) property of the FxTrade object.
+            trade.BondTradeType = items[0] switch
+            {
+                "GovBond" => BondTrade.BondTradeTypes.Government,
+                "CorpBond" => BondTrade.BondTradeTypes.Corporate,
+                "Supra" => BondTrade.BondTradeTypes.Supranational,
+                _ => throw new InvalidDataException($"Invalid trade type: {items[0]}"),
+            };
+
             trade.TradeDate = DateTime.Parse(items[1]);
             trade.Instrument = items[2];
             trade.Counterparty = items[3];
