@@ -12,6 +12,18 @@ namespace HmxLabs.TechTest.RiskSystem
             return loaders.Select(loader => loader.LoadTrades()).ToList();
         }
 
+        public void LoadAndPriceTrades(SerialPricer pricer_, ScalarResults results_)
+        {
+            var loaders = GetTradeLoaders();
+            foreach (var loader in loaders)
+            {
+                foreach(var trade in loader.LoadTradesIndividually())
+                {
+                    pricer_.Price(trade, results_);
+                }
+            }
+        }
+
         private IEnumerable<ITradeLoader> GetTradeLoaders()
         {
             var loaders = new List<ITradeLoader>();

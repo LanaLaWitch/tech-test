@@ -14,6 +14,16 @@ namespace HmxLabs.TechTest.Loaders
             return tradeList;
         }
 
+        public IEnumerable<ITrade> LoadTradesIndividually()
+        {
+            var tradeList = new BondTradeList();
+
+            foreach (var trade in LoadTradesFromFileIndividually(DataFile))
+            {
+                yield return trade;
+            }
+        }
+
         public string? DataFile { get; set; }
 
         private BondTrade CreateTradeFromLine(string line_)
@@ -59,6 +69,30 @@ namespace HmxLabs.TechTest.Loaders
                     else
                     {
                         tradeList_.Add(CreateTradeFromLine(stream.ReadLine()!));    
+                    }
+                    lineCount++;
+                }
+            }
+        }
+
+        private IEnumerable<BondTrade> LoadTradesFromFileIndividually(string? filename_)
+        {
+            if (null == filename_)
+                throw new ArgumentNullException(nameof(filename_));
+            
+            var stream = new StreamReader(filename_);
+            using (stream)
+            {
+                var lineCount = 0;
+                while (!stream.EndOfStream)
+                {
+                    if (0 == lineCount)
+                    {
+                        stream.ReadLine();
+                    }
+                    else
+                    {
+                        yield return CreateTradeFromLine(stream.ReadLine()!);    
                     }
                     lineCount++;
                 }
